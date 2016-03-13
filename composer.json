@@ -1,0 +1,27 @@
+{
+    "name": "iridium-flare/nephila",
+    "description": "Simple web crawling software.",
+    "homepage": "https://github.com/iridium-flare/nephila",
+    "license": "MIT",
+    "keywords": [
+        "php", "curl", "client", "http client", "http", "spider", "crawler", "site crawler", "webspider"
+    ],
+    "authors": [
+        {
+            "name": "iridium-flare"
+        }
+    ],
+    "require": {
+        "php": ">=5.5",
+        "ext-curl": "*",
+        "psr/log" : "1.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "5.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Nephila\\": "src/"
+        }
+    }
+}
