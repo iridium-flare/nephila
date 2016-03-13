@@ -37,7 +37,7 @@ class Client implements LoggerAwareInterface
     private $cookies = [];
 
     /**
-     *
+     * Client constructor.
      */
     final public function __construct()
     {
