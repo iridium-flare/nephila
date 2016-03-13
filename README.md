@@ -1,5 +1,7 @@
 # Nephila
 
+[![Build Status](https://travis-ci.org/iridium-flare/nephila.png?branch=master)](http://travis-ci.org/iridium-flare/nephila)
+
 
 ## Synopsis
 The **Nephila Clavata**, a.k.a *Jorōgumo*, is a spider that lives on 
