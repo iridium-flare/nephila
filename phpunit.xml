@@ -12,7 +12,7 @@
          bootstrap="tests/bootstrap.php"
 >
     <testsuites>
-        <testsuite name="Composer Test Suite">
+        <testsuite name="Nephila Test Suite">
             <directory>./tests/</directory>
         </testsuite>
     </testsuites>
