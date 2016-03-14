@@ -6,6 +6,10 @@ use SplSubject;
 use \Nephila\Clavata;
 use \Nephila\Clavata\Stud\Event;
 
+use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
+use Psr\Log\LoggerAwareInterface;
+
 /**
  * Class Core
  * @package Nephila\Clavata
@@ -20,7 +24,7 @@ use \Nephila\Clavata\Stud\Event;
  * The Studs will report events back to the Core and any other registered observer. @see \Nephila\Clavata\Stud\AbstractClass::attach()
  *
  */
-final class Core implements \SplObserver
+final class Core implements \SplObserver, LoggerAwareInterface
 {
     /**
      * @var Event\AbstractClass
@@ -31,6 +35,31 @@ final class Core implements \SplObserver
      * @var array
      */
     private $studs = [];
+
+    /**
+     * @var LoggerInterface
+     */
+    private $logger;
+
+
+    /**
+     * Core constructor.
+     */
+    public function __construct()
+    {
+        $this->logger = new NullLogger();
+    }
+
+    /**
+     * Sets a logger instance on the object
+     * @see LoggerAwareInterface
+     * @param LoggerInterface $logger
+     * @return void
+     */
+    public function setLogger(LoggerInterface $logger)
+    {
+        $this->logger = $logger;
+    }
 
     /**
      * Sets an URL for crawling.
@@ -74,7 +103,7 @@ final class Core implements \SplObserver
             $stud->attach($this);
             $stud->exec();
         } catch (\Exception $e) {
-            // @todo Add logger
+            $this->logger->error('Error {class} on stud execution loop: {message}', [ 'class' => get_class($e), 'message' => $e->getMessage() ]);
         }
     }
 
