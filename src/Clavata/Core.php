@@ -6,6 +6,10 @@ use SplSubject;
 use \Nephila\Clavata;
 use \Nephila\Clavata\Stud\Event;
 
+use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
+use Psr\Log\LoggerAwareInterface;
+
 /**
  * Class Core
  * @package Nephila\Clavata
@@ -20,7 +24,7 @@ use \Nephila\Clavata\Stud\Event;
  * The Studs will report events back to the Core and any other registered observer. @see \Nephila\Clavata\Stud\AbstractClass::attach()
  *
  */
-final class Core implements \SplObserver
+final class Core implements \SplObserver, LoggerAwareInterface
 {
     /**
      * @var Event\AbstractClass
@@ -33,12 +37,49 @@ final class Core implements \SplObserver
     private $studs = [];
 
     /**
+     * @var LoggerInterface
+     */
+    private $logger;
+
+
+    /**
+     * Core constructor.
+     */
+    public function __construct()
+    {
+        $this->logger = new NullLogger();
+    }
+
+    /**
+     * Sets a logger instance on the object
+     * @see LoggerAwareInterface
+     * @param LoggerInterface $logger
+     * @return void
+     */
+    public function setLogger(LoggerInterface $logger)
+    {
+        $this->logger = $logger;
+    }
+
+    /**
+     * Sets an URL for crawling.
+     * @param string $url
+     * @return void
+     */
+    public function setUrl($url)
+    {
+        $this->studs[] = new Stud\Startup($url);
+    }
+
+
+    /**
      * Adds a "noop" stud for testing.
+     * This does nothing.
      * @return void
      */
     public function noop()
     {
-        array_unshift( $this->studs, new Clavata\Stud\Noop());
+        array_unshift($this->studs, new Clavata\Stud\Noop());
     }
 
     /**
@@ -46,13 +87,38 @@ final class Core implements \SplObserver
      */
     public function run()
     {
-        while (false == empty($this->studs))
-        {
+        $this->preExecution();
+        $this->execute();
+        $this->postExecution();
+    }
+
+    /**
+     * @return void
+     */
+    private function execute()
+    {
+        while (false == empty($this->studs)) try {
             /** @var  Clavata\Stud\AbstractClass $stud */
             $stud = array_shift($this->studs);
-            $stud->attach( $this );
+            $stud->attach($this);
             $stud->exec();
+        } catch (\Exception $e) {
+            $this->logger->error('Error {class} on stud execution loop: {message}', [ 'class' => get_class($e), 'message' => $e->getMessage() ]);
         }
+    }
+
+    /**
+     * @return void
+     */
+    private function preExecution()
+    {
+    }
+
+    /**
+     * @return void
+     */
+    private function postExecution()
+    {
     }
 
     /**
@@ -68,6 +134,11 @@ final class Core implements \SplObserver
     {
         if ($subject instanceof Stud\AbstractClass) {
             $this->lastEvent = $subject->getEvent();
+            switch (get_class($this->lastEvent)) {
+                case 'Nephila\Clavata\Stud\Event\Start' :
+                    array_push($this->studs, new Stud\Shutdown());
+                    break;
+            }
         }
     }
 
