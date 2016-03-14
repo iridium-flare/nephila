@@ -33,12 +33,24 @@ final class Core implements \SplObserver
     private $studs = [];
 
     /**
+     * Sets an URL for crawling.
+     * @param string $url
+     * @return void
+     */
+    public function setUrl($url)
+    {
+        $this->studs[] = new Stud\Startup($url);
+    }
+
+
+    /**
      * Adds a "noop" stud for testing.
+     * This does nothing.
      * @return void
      */
     public function noop()
     {
-        array_unshift( $this->studs, new Clavata\Stud\Noop());
+        array_unshift($this->studs, new Clavata\Stud\Noop());
     }
 
     /**
@@ -46,13 +58,38 @@ final class Core implements \SplObserver
      */
     public function run()
     {
-        while (false == empty($this->studs))
-        {
+        $this->preExecution();
+        $this->execute();
+        $this->postExecution();
+    }
+
+    /**
+     * @return void
+     */
+    private function execute()
+    {
+        while (false == empty($this->studs)) try {
             /** @var  Clavata\Stud\AbstractClass $stud */
             $stud = array_shift($this->studs);
-            $stud->attach( $this );
+            $stud->attach($this);
             $stud->exec();
+        } catch (\Exception $e) {
+            // @todo Add logger
         }
+    }
+
+    /**
+     * @return void
+     */
+    private function preExecution()
+    {
+    }
+
+    /**
+     * @return void
+     */
+    private function postExecution()
+    {
     }
 
     /**
@@ -68,6 +105,11 @@ final class Core implements \SplObserver
     {
         if ($subject instanceof Stud\AbstractClass) {
             $this->lastEvent = $subject->getEvent();
+            switch (get_class($this->lastEvent)) {
+                case 'Nephila\Clavata\Stud\Event\Start' :
+                    array_push($this->studs, new Stud\Shutdown());
+                    break;
+            }
         }
     }
 
